@@ -1,0 +1,13 @@
+services:
+    -
+        class: Havn\Executable\Testing\Analysis\ExecutableParamMismatchRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Havn\Executable\Testing\Analysis\DirectExecuteCallRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Havn\Executable\Testing\Analysis\SyncExecutableWithQueueFeaturesRule
+        tags:
+            - phpstan.rules.rule

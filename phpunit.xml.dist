@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    backupGlobals="false"
+    backupStaticProperties="false"
+    beStrictAboutOutputDuringTests="true"
+    bootstrap="vendor/autoload.php"
+    cacheDirectory=".phpunit.cache"
+    colors="true"
+    executionOrder="random"
+    failOnEmptyTestSuite="true"
+    failOnRisky="true"
+    failOnWarning="true"
+    processIsolation="false"
+    stopOnFailure="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+>
+    <testsuites>
+        <testsuite name="Havn Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="memory_limit"
+             value="256M"/>
+    </php>
+</phpunit>

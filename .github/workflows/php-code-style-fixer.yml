@@ -1,0 +1,31 @@
+name: "PHP code style fixer"
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '**.php'
+      - '.github/workflows/php-code-style-fixer.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  php-code-styling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run Laravel Pint
+        uses: aglipanci/laravel-pint-action@2.6
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: Fix styling

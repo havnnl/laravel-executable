@@ -1,0 +1,13 @@
+.claude
+.idea
+.phpunit.cache
+build
+composer.lock
+coverage
+node_modules
+phpstan.neon
+phpunit.xml
+testbench.yaml
+vendor
+*.local.json
+*.local.md
