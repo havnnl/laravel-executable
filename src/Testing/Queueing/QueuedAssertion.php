@@ -38,14 +38,14 @@ final class QueuedAssertion
 
     public function with(mixed ...$args): self
     {
-        $this->argumentFilter = fn (PushedJob $job) => $job->executedWith(...$args);
+        $this->argumentFilter = static fn (PushedJob $job) => $job->executedWith(...$args);
 
         return $this;
     }
 
     public function withArgs(callable $callback): self
     {
-        $this->argumentFilter = fn (PushedJob $job) => $job->executedWithArgs($callback);
+        $this->argumentFilter = static fn (PushedJob $job) => $job->executedWithArgs($callback);
 
         return $this;
     }
