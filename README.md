@@ -103,7 +103,7 @@ The MIT License (MIT). See [License File](LICENSE.md) for details.
 
 ## Credits
 
-- [Henk Koop](https://github.com/henkkoop)
+- [Henk Koop](https://github.com/hxnk)
 - [All Contributors](../../contributors)
 
 ---
