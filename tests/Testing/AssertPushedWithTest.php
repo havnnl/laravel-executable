@@ -35,7 +35,7 @@ it('fails when count mismatches with matching argument filter', function () {
 
     PlainQueueableExecutable::onQueue()->execute('input');
 
-    $assertion = fn() => PlainQueueableExecutable::assert()
+    $assertion = fn () => PlainQueueableExecutable::assert()
         ->queued()
         ->times(2)
         ->with('input');
