@@ -1,12 +1,11 @@
-# Laravel Executable | Single-task action classes for Laravel.
+# Single-task action classes for Laravel.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/havn/laravel-executable.svg?style=flat-square)](https://packagist.org/packages/havn/laravel-executable)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/havn/laravel-executable/php-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/havnnl/laravel-executable/actions?query=workflow%3Aphp-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/havn/laravel-executable/php-code-style-fixer.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/havnnl/laravel-executable/actions?query=workflow%3Aphp-code-style-fixer+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/havnnl/laravel-executable/php-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/havnnl/laravel-executable/actions?query=workflow%3Aphp-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/havnnl/laravel-executable/php-code-style-fixer.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/havnnl/laravel-executable/actions?query=workflow%3Aphp-code-style-fixer+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/havn/laravel-executable.svg?style=flat-square)](https://packagist.org/packages/havn/laravel-executable)
 
-Single-task action classes for Laravel. Fully queueable, with a testing API that makes you like writing tests more than
-the actual code.
+Fully queueable, with a testing API that makes you like writing tests more than the actual code.
 
 Read the full documentation at  [docs.havn.nl](https://docs.havn.nl/laravel-executable/).
 
