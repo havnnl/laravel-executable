@@ -11,3 +11,28 @@ services:
         class: Havn\Executable\Testing\Analysis\SyncExecutableWithQueueFeaturesRule
         tags:
             - phpstan.rules.rule
+    -
+        class: Havn\Executable\Testing\Analysis\ExecuteReturnTypeExtension
+        arguments:
+            class: Havn\Executable\Contracts\SyncExecutableMethods
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: Havn\Executable\Testing\Analysis\ExecuteReturnTypeExtension
+        arguments:
+            class: Havn\Executable\Contracts\QueuedExecutableMethods
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: Havn\Executable\Testing\Analysis\ExecuteReturnTypeExtension
+        arguments:
+            class: Havn\Executable\Contracts\TestedExecutableMethods
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: Havn\Executable\Testing\Analysis\ExecuteReturnTypeExtension
+        arguments:
+            class: Havn\Executable\Contracts\PreparedExecutableMethods
+            forceReturnType: Havn\Executable\Jobs\ExecutableJob
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension

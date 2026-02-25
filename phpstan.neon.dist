@@ -4,6 +4,8 @@ parameters:
         - src
         - config
         - workbench
+    excludePaths:
+        - workbench/app/Executables/Analysis/ExecuteReturnTypeFixture.php
     configDirectories:
         - config
     tmpDir: build/phpstan
