@@ -8,6 +8,8 @@ use Closure;
 use DateInterval;
 use DateTimeInterface;
 use Havn\Executable\Jobs\ExecutableJob;
+use Havn\Executable\Pipeline\PipelineConfig;
+use Havn\Executable\Support\ExecutableArguments;
 use Havn\Executable\Testing\Exceptions\CannotCheckArgumentsForJob;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -93,6 +95,73 @@ final class PushedJob
             $this->getProperty('queue'),
             $queue
         ));
+
+        return $this;
+    }
+
+    public function hasConcurrencyLimit(
+        ?string $key = null,
+        ?int $lockFor = null,
+        ?int $waitFor = null,
+        ?string $store = null,
+    ): bool {
+        $config = $this->pipelineConfig()->concurrencyLimit;
+
+        if (! $config) {
+            return false;
+        }
+
+        if ($key === null && $lockFor === null && $waitFor === null && $store === null) {
+            return true;
+        }
+
+        return ($key === null || $config->key === $key)
+            && ($lockFor === null || $config->lockFor === $lockFor)
+            && ($waitFor === null || $config->waitFor === $waitFor)
+            && ($store === null || $config->store === $store);
+    }
+
+    public function assertHasConcurrencyLimit(
+        ?string $key = null,
+        ?int $lockFor = null,
+        ?int $waitFor = null,
+        ?string $store = null,
+    ): self {
+        Assert::assertTrue(
+            $this->hasConcurrencyLimit($key, $lockFor, $waitFor, $store),
+            "[$this->jobClass] does not have a concurrency limit".
+            ($key !== null || $lockFor !== null || $waitFor !== null || $store !== null
+                ? ' with the expected configuration.'
+                : '.'),
+        );
+
+        return $this;
+    }
+
+    public function executesInTransaction(?int $attempts = null): bool
+    {
+        $config = $this->pipelineConfig()->executeInTransaction;
+
+        if (! $config) {
+            return false;
+        }
+
+        return $attempts === null || $config->attempts === $attempts;
+    }
+
+    public function assertExecutesInTransaction(?int $attempts = null): self
+    {
+        Assert::assertTrue(
+            $this->executesInTransaction(),
+            "[$this->jobClass] does not execute in a transaction.",
+        );
+
+        if ($attempts !== null) {
+            Assert::assertTrue(
+                $this->executesInTransaction($attempts),
+                "[$this->jobClass] executes in a transaction but with different attempts.",
+            );
+        }
 
         return $this;
     }
@@ -430,6 +499,18 @@ final class PushedJob
         );
 
         return collect($middleware);
+    }
+
+    private function pipelineConfig(): PipelineConfig
+    {
+        if (! $this->job instanceof ExecutableJob) {
+            return new PipelineConfig;
+        }
+
+        return PipelineConfig::resolve(
+            $this->job->executable(),
+            ExecutableArguments::from($this->job->arguments()),
+        );
     }
 
     private function getProperty(string $property): mixed

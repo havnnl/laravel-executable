@@ -12,6 +12,13 @@ use Havn\Executable\Testing\Queueing\PushedJob;
 use PHPUnit\Framework\ExpectationFailedException;
 use Symfony\Component\VarDumper\VarDumper;
 use Workbench\App\Executables\PlainQueueableExecutable;
+use Workbench\App\Executables\UseConcurrencyLimitByAttributeExecutable;
+use Workbench\App\Executables\UseConcurrencyLimitByAttributeWithOptionsExecutable;
+use Workbench\App\Executables\UseConcurrencyLimitExecutable;
+use Workbench\App\Executables\UseConcurrencyLimitWithParamsExecutable;
+use Workbench\App\Executables\UseTransactionByAttributeExecutable;
+use Workbench\App\Executables\UseTransactionByAttributeWithAttemptsExecutable;
+use Workbench\App\Executables\UseTransactionExecutable;
 use Workbench\App\Jobs\SimpleEncryptedJob;
 use Workbench\App\Jobs\SimpleJob;
 use Workbench\App\Jobs\SimpleUniqueJob;
@@ -892,4 +899,116 @@ it('fails asserting job has specific tags', function () {
 
     expect(fn () => $sut->assertHasTags(['tag-1', 'tag-3']))
         ->toThrow(ExpectationFailedException::class);
+});
+
+it('checks if executable executes in transaction via interface', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseTransactionExecutable, ExecutableArguments::from([]), null));
+
+    expect($sut->executesInTransaction())->toBeTrue()
+        ->and($sut->executesInTransaction(attempts: 1))->toBeTrue()
+        ->and($sut->executesInTransaction(attempts: 3))->toBeFalse();
+
+    $sut->assertExecutesInTransaction();
+    $sut->assertExecutesInTransaction(attempts: 1);
+});
+
+it('checks if executable executes in transaction via attribute', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseTransactionByAttributeExecutable, ExecutableArguments::from([]), null));
+
+    expect($sut->executesInTransaction())->toBeTrue()
+        ->and($sut->executesInTransaction(attempts: 1))->toBeTrue()
+        ->and($sut->executesInTransaction(attempts: 3))->toBeFalse();
+
+    $sut->assertExecutesInTransaction();
+    $sut->assertExecutesInTransaction(attempts: 1);
+});
+
+it('checks if executable executes in transaction with custom attempts', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseTransactionByAttributeWithAttemptsExecutable, ExecutableArguments::from([]), null));
+
+    expect($sut->executesInTransaction())->toBeTrue()
+        ->and($sut->executesInTransaction(attempts: 3))->toBeTrue()
+        ->and($sut->executesInTransaction(attempts: 1))->toBeFalse();
+
+    $sut->assertExecutesInTransaction(attempts: 3);
+
+    expect(fn () => $sut->assertExecutesInTransaction(attempts: 1))
+        ->toThrow(ExpectationFailedException::class, 'executes in a transaction but with different attempts.');
+});
+
+it('returns false when executable does not execute in transaction', function () {
+    $sut = pushedJobExecutable();
+
+    expect($sut->executesInTransaction())->toBeFalse();
+
+    expect(fn () => $sut->assertExecutesInTransaction())
+        ->toThrow(ExpectationFailedException::class, '[ExecutableJob] does not execute in a transaction.');
+});
+
+it('returns false for transaction check on non-executable job', function () {
+    $sut = PushedJob::from(new SimpleJob);
+
+    expect($sut->executesInTransaction())->toBeFalse();
+});
+
+it('checks if executable has concurrency limit via method', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseConcurrencyLimitExecutable, ExecutableArguments::from([]), null));
+
+    expect($sut->hasConcurrencyLimit())->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'test-concurrency'))->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'wrong-key'))->toBeFalse();
+
+    $sut->assertHasConcurrencyLimit();
+    $sut->assertHasConcurrencyLimit(key: 'test-concurrency');
+});
+
+it('checks if executable has concurrency limit via attribute', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseConcurrencyLimitByAttributeExecutable, ExecutableArguments::from([]), null));
+
+    expect($sut->hasConcurrencyLimit())->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'test-concurrency'))->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'wrong-key'))->toBeFalse();
+
+    $sut->assertHasConcurrencyLimit();
+    $sut->assertHasConcurrencyLimit(key: 'test-concurrency');
+});
+
+it('checks concurrency limit with all options via attribute', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseConcurrencyLimitByAttributeWithOptionsExecutable, ExecutableArguments::from([]), null));
+
+    expect($sut->hasConcurrencyLimit(key: 'test-concurrency', lockFor: 120, waitFor: 30, store: 'redis'))->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'test-concurrency'))->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(lockFor: 999))->toBeFalse()
+        ->and($sut->hasConcurrencyLimit(store: 'wrong-store'))->toBeFalse();
+});
+
+it('resolves concurrency limit config from method with required params using job arguments', function () {
+    $model = new SomeModel(['id' => 42]);
+    $sut = PushedJob::from(new ExecutableJob(new UseConcurrencyLimitWithParamsExecutable, ExecutableArguments::from(['model' => $model]), null));
+
+    expect($sut->hasConcurrencyLimit())->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'model-42'))->toBeTrue()
+        ->and($sut->hasConcurrencyLimit(key: 'wrong-key'))->toBeFalse();
+});
+
+it('returns false when executable does not have concurrency limit', function () {
+    $sut = pushedJobExecutable();
+
+    expect($sut->hasConcurrencyLimit())->toBeFalse();
+
+    expect(fn () => $sut->assertHasConcurrencyLimit())
+        ->toThrow(ExpectationFailedException::class, '[ExecutableJob] does not have a concurrency limit.');
+});
+
+it('fails assert with wrong concurrency config', function () {
+    $sut = PushedJob::from(new ExecutableJob(new UseConcurrencyLimitByAttributeExecutable, ExecutableArguments::from([]), null));
+
+    expect(fn () => $sut->assertHasConcurrencyLimit(key: 'wrong-key'))
+        ->toThrow(ExpectationFailedException::class, 'with the expected configuration.');
+});
+
+it('returns false for concurrency limit check on non-executable job', function () {
+    $sut = PushedJob::from(new SimpleJob);
+
+    expect($sut->hasConcurrencyLimit())->toBeFalse();
 });
