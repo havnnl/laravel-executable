@@ -8,6 +8,7 @@ use Closure;
 use Havn\Executable\Config\QueueableJobBuilder;
 use Havn\Executable\Exceptions\CannotUseConditionalExecution;
 use Havn\Executable\Jobs\ExecutableSyncJob;
+use Havn\Executable\Support\ExecutableArguments;
 use Havn\Executable\Testing\Exceptions\CannotQueueMockedExecutable;
 use Havn\Executable\Testing\Exceptions\CannotTestExecutable;
 use Havn\Executable\Testing\Exceptions\CannotTestMockedExecutable;
@@ -134,18 +135,17 @@ final class PendingExecution
             return null;
         }
 
+        $executableArguments = ExecutableArguments::resolve($this->executable, $arguments);
+
         return match ($this->executionType) {
-            ExecutionMode::SYNC => $this->executeSync($arguments),
-            ExecutionMode::TEST => $this->executeTest($arguments),
-            ExecutionMode::QUEUE => dispatch($this->jobBuilder()->createJob($arguments)),
-            ExecutionMode::PREPARE => $this->jobBuilder()->createJob($arguments),
+            ExecutionMode::SYNC => $this->executeSync($executableArguments),
+            ExecutionMode::TEST => $this->executeTest($executableArguments),
+            ExecutionMode::QUEUE => dispatch($this->jobBuilder()->createJob($executableArguments)),
+            ExecutionMode::PREPARE => $this->jobBuilder()->createJob($executableArguments),
         };
     }
 
-    /**
-     * @param  array<int, mixed>  $arguments
-     */
-    private function executeSync(array $arguments): mixed
+    private function executeSync(ExecutableArguments $arguments): mixed
     {
         $syncJob = new ExecutableSyncJob($this->executable, $arguments);
 
@@ -158,10 +158,7 @@ final class PendingExecution
         return $syncJob->handle();
     }
 
-    /**
-     * @param  array<int, mixed>  $arguments
-     */
-    private function executeTest(array $arguments): mixed
+    private function executeTest(ExecutableArguments $arguments): mixed
     {
         if (! $this->isQueueable()) {
             return (new ExecutableSyncJob($this->executable, $arguments))->handle();

@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 use Workbench\App\Executables\FailingExecutable;
 
-beforeEach(function () {
-    $_SERVER['_failing_executable_exception'] = null;
-    $_SERVER['_failing_executable_arguments'] = null;
-});
-
 afterEach(function () {
     unset($_SERVER['_failing_executable_exception']);
     unset($_SERVER['_failing_executable_arguments']);

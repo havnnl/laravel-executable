@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Havn\Executable\Jobs\ExecutableUniqueJob;
+use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\DynamicInjection\ConfigNameCollisionExecutable;
@@ -19,6 +20,7 @@ use Workbench\App\Executables\DynamicInjection\ServiceInjectionExecutable;
 use Workbench\App\Executables\DynamicInjection\SubclassFailedExecutable;
 use Workbench\App\Executables\DynamicInjection\ThrowableNameCollisionExecutable;
 use Workbench\App\Executables\DynamicInjection\ZeroParameterExecutable;
+use Workbench\App\Executables\PositionalFallbackExecutable;
 
 afterEach(function () {
     unset(
@@ -297,16 +299,24 @@ describe('edge cases', function () {
     });
 });
 
+describe('positional fallback', function () {
+    it('resolves lifecycle method params via positional fallback when names do not match', function () {
+        $job = PositionalFallbackExecutable::prepare()->execute('hello');
+
+        expect($job->displayName())->toBe('display:hello');
+    });
+});
+
 describe('in-flight job backwards compatibility', function () {
     it('resolves tags with integer-keyed arguments via positional fallback', function () {
-        $job = new ExecutableJob(new FullSignatureExecutable, [0 => 'ORD-OLD', 1 => 300], new QueueableConfig);
+        $job = new ExecutableJob(new FullSignatureExecutable, ExecutableArguments::from([0 => 'ORD-OLD', 1 => 300]), new QueueableConfig);
 
         expect($job->tags())->toBe(['order:ORD-OLD', 'amount:300']);
     });
 
     it('resolves failed with integer-keyed arguments via positional fallback', function () {
         $exception = new \Exception('In-flight failure');
-        $job = new ExecutableJob(new FullSignatureExecutable, [0 => 'ORD-OLD', 1 => 300], new QueueableConfig);
+        $job = new ExecutableJob(new FullSignatureExecutable, ExecutableArguments::from([0 => 'ORD-OLD', 1 => 300]), new QueueableConfig);
 
         $job->failed($exception);
 

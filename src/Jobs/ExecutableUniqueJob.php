@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Havn\Executable\Jobs;
 
 use Havn\Executable\Config\QueueableConfig;
+use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 
@@ -17,10 +18,7 @@ class ExecutableUniqueJob extends ExecutableJob implements ShouldBeUnique
 
     public ?int $uniqueFor = null;
 
-    /**
-     * @param  array<string, mixed>  $arguments
-     */
-    public function __construct(object $executable, array $arguments, QueueableConfig $config)
+    public function __construct(object $executable, ExecutableArguments $arguments, QueueableConfig $config)
     {
         parent::__construct($executable, $arguments, $config);
 
@@ -34,7 +32,7 @@ class ExecutableUniqueJob extends ExecutableJob implements ShouldBeUnique
     public function uniqueVia(): Repository
     {
         return method_exists($this->executable(), 'uniqueVia')
-            ? $this->invoke($this->executable(), 'uniqueVia', $this->arguments())
+            ? $this->arguments->callOn($this->executable(), 'uniqueVia')
             : resolve(Repository::class);
     }
 }

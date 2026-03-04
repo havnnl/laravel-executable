@@ -6,6 +6,7 @@ use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Havn\Executable\Jobs\ExecutableUniqueJob;
 use Havn\Executable\Jobs\ExecutableUniqueUntilProcessingJob;
+use Havn\Executable\Support\ExecutableArguments;
 use Havn\Executable\Testing\Exceptions\CannotCheckArgumentsForJob;
 use Havn\Executable\Testing\Queueing\PushedJob;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -19,12 +20,12 @@ use Workbench\App\Models\SomeModel;
 
 function pushedJobExecutable(?QueueableConfig $config = null, array $arguments = [])
 {
-    return PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, $arguments, $config)));
+    return PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, ExecutableArguments::from($arguments), $config)));
 }
 
 function pushedJobUniqueExecutable(?QueueableConfig $config = null)
 {
-    return PushedJob::from((new ExecutableUniqueJob(new PlainQueueableExecutable, [], $config)));
+    return PushedJob::from((new ExecutableUniqueJob(new PlainQueueableExecutable, ExecutableArguments::from([]), $config)));
 }
 
 it('checks if executable matches by class name', function () {
@@ -275,7 +276,7 @@ it('checks if job is unique for', function () {
 
 it('checks if executable is unique until processing', function () {
 
-    $unique = PushedJob::from((new ExecutableUniqueUntilProcessingJob(new PlainQueueableExecutable, [], new QueueableConfig(uniqueId: 'some-id'))));
+    $unique = PushedJob::from((new ExecutableUniqueUntilProcessingJob(new PlainQueueableExecutable, ExecutableArguments::from([]), new QueueableConfig(uniqueId: 'some-id'))));
     $notUnique = pushedJobExecutable(new QueueableConfig);
 
     expect($unique->isUniqueUntilProcessing())->toBeTrue()
@@ -476,7 +477,7 @@ it('throws if checking arguments for regular job using callback', function () {
 })->throws(CannotCheckArgumentsForJob::class);
 
 it('checks if executable has chain', function () {
-    $sut = PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, [], null))
+    $sut = PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, ExecutableArguments::from([]), null))
         ->appendToChain(new SimpleEncryptedJob)
         ->appendToChain(PlainQueueableExecutable::prepare()->execute()));
 
@@ -530,9 +531,9 @@ it('checks if job has chain', function () {
 });
 
 it('checks if executable has no chain', function () {
-    $withChain = PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, [], null))
+    $withChain = PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, ExecutableArguments::from([]), null))
         ->appendToChain(new SimpleEncryptedJob));
-    $withoutChain = PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, [], null)));
+    $withoutChain = PushedJob::from((new ExecutableJob(new PlainQueueableExecutable, ExecutableArguments::from([]), null)));
 
     expect($withChain->hasNoChain())->toBeFalse()
         ->and($withoutChain->hasNoChain())->toBeTrue();

@@ -8,7 +8,7 @@ use DateTimeInterface;
 use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Contracts\ShouldExecuteInTransaction;
 use Havn\Executable\QueueableExecutable;
-use Havn\Executable\Support\InvokesExecutableMethods;
+use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,7 +27,6 @@ class ExecutableJob implements ShouldQueue
 {
     use Batchable,
         InteractsWithQueue,
-        InvokesExecutableMethods,
         Queueable,
         SerializesModels {
             __serialize as __parentSerialize;
@@ -57,10 +56,7 @@ class ExecutableJob implements ShouldQueue
 
     protected string $executableClass;
 
-    /**
-     * @param  array<string, mixed>  $arguments
-     */
-    public function __construct(protected object $executable, protected array $arguments, ?QueueableConfig $config)
+    public function __construct(protected object $executable, protected ExecutableArguments $arguments, ?QueueableConfig $config)
     {
         $this->executableClass = get_class($executable);
 
@@ -78,11 +74,11 @@ class ExecutableJob implements ShouldQueue
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function arguments(): array
     {
-        return $this->arguments;
+        return $this->arguments->toArray();
     }
 
     public function handle(): mixed
@@ -90,7 +86,7 @@ class ExecutableJob implements ShouldQueue
         $this->setJobOnExecutable();
 
         if (! $this->executable instanceof ShouldExecuteInTransaction) {
-            return $this->executable->execute(...$this->arguments);
+            return $this->arguments->callOn($this->executable, 'execute');
         }
 
         $attempts = property_exists($this->executable, 'transactionAttempts')
@@ -98,7 +94,7 @@ class ExecutableJob implements ShouldQueue
             : 1;
 
         return DB::transaction(function (): mixed {
-            return $this->executable->execute(...$this->arguments);
+            return $this->arguments->callOn($this->executable, 'execute');
         }, $attempts);
     }
 
@@ -115,10 +111,10 @@ class ExecutableJob implements ShouldQueue
     public function tags(): ?array
     {
         if (method_exists($this->executable, 'tags')) {
-            return $this->invoke($this->executable, 'tags', $this->arguments);
+            return $this->arguments->callOn($this->executable, 'tags');
         }
 
-        return collect(array_values($this->arguments))
+        return collect($this->arguments->values())
             ->map(function ($argument) {
                 if ($argument instanceof Model) {
                     return [$argument];
@@ -139,7 +135,7 @@ class ExecutableJob implements ShouldQueue
     public function middleware(): array
     {
         return method_exists($this->executable, 'middleware')
-            ? $this->invoke($this->executable, 'middleware', $this->arguments)
+            ? $this->arguments->callOn($this->executable, 'middleware')
             : [];
     }
 
@@ -150,11 +146,8 @@ class ExecutableJob implements ShouldQueue
             $firstParam = $reflection->getParameters()[0] ?? null;
             $throwableArgs = $firstParam ? [$firstParam->getName() => $throwable] : [];
 
-            $this->invoke(
-                $this->executable,
-                'failed',
-                array_merge($throwableArgs, array_diff_key($this->arguments, $throwableArgs)),
-            );
+            $this->arguments->with($throwableArgs)
+                ->callOn($this->executable, 'failed');
         }
     }
 
@@ -223,20 +216,21 @@ class ExecutableJob implements ShouldQueue
     public function __serialize(): array
     {
         $executable = $this->executable;
+        $arguments = $this->arguments;
 
         unset($this->executable); // @phpstan-ignore unset.possiblyHookedProperty
+        unset($this->arguments); // @phpstan-ignore unset.possiblyHookedProperty
 
         $withRelations = $this->withoutRelations === null
             ? config('executable.serialize_models_with_relations')
             : ! $this->withoutRelations;
 
-        foreach ($this->arguments as $key => $value) {
-            $this->arguments[$key] = $this->getSerializedPropertyValue($value, $withRelations);
-        }
-
         $data = $this->__parentSerialize();
 
+        $data["\0*\0arguments"] = $arguments->serialize($withRelations);
+
         $this->executable = $executable;
+        $this->arguments = $arguments;
 
         return $data;
     }
@@ -246,12 +240,10 @@ class ExecutableJob implements ShouldQueue
      */
     public function __unserialize(array $values): void
     {
+        $values["\0*\0arguments"] = ExecutableArguments::unserialize($values["\0*\0arguments"]);
+
         $this->__parentUnserialize($values);
 
         $this->executable = resolve($this->executableClass());
-
-        foreach ($this->arguments as $key => $value) {
-            $this->arguments[$key] = $this->getRestoredPropertyValue($value);
-        }
     }
 }

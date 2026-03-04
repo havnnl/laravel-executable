@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Havn\Executable\Jobs;
 
 use Havn\Executable\Contracts\ShouldExecuteInTransaction;
+use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -14,10 +15,7 @@ final class ExecutableSyncJob
 {
     protected string $executableClass;
 
-    /**
-     * @param  array<int, mixed>  $arguments
-     */
-    public function __construct(protected object $executable, protected array $arguments)
+    public function __construct(protected object $executable, protected ExecutableArguments $arguments)
     {
         $this->executableClass = get_class($executable);
     }
@@ -33,17 +31,17 @@ final class ExecutableSyncJob
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<int|string, mixed>
      */
     public function arguments(): array
     {
-        return $this->arguments;
+        return $this->arguments->toArray();
     }
 
     public function handle(): mixed
     {
         if (! $this->executable instanceof ShouldExecuteInTransaction) {
-            return $this->executable->execute(...$this->arguments);
+            return $this->arguments->callOn($this->executable, 'execute');
         }
 
         $attempts = property_exists($this->executable, 'transactionAttempts')
@@ -51,7 +49,7 @@ final class ExecutableSyncJob
             : 1;
 
         return DB::transaction(function (): mixed {
-            return $this->executable->execute(...$this->arguments);
+            return $this->arguments->callOn($this->executable, 'execute');
         }, $attempts);
     }
 }
