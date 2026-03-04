@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Workbench\App\Executables\Analysis;
 
-use Havn\Executable\Config\ConcurrencyLimit;
+use Havn\Executable\Attributes\ConcurrencyLimit;
 use Havn\Executable\QueueableExecutable;
 use Workbench\App\Models\SomeModel;
 

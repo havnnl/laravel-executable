@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Havn\Executable\Testing\Analysis;
 
-use Havn\Executable\Config\ConcurrencyLimit;
+use Havn\Executable\Attributes\ConcurrencyLimit;
 use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\QueueableExecutable;
 use PhpParser\Node;

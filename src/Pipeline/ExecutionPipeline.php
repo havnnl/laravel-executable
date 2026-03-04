@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Havn\Executable\Pipeline;
 
-use Havn\Executable\Config\ConcurrencyLimit;
-use Havn\Executable\Config\ExecuteInTransaction;
+use Havn\Executable\Attributes\ConcurrencyLimit;
+use Havn\Executable\Attributes\ExecuteInTransaction;
 use Havn\Executable\Contracts\ShouldExecuteInTransaction;
 use Havn\Executable\Support\AttributeReader;
 use Havn\Executable\Support\ExecutableArguments;

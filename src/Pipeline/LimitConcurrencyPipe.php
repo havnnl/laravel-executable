@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Havn\Executable\Pipeline;
 
 use Closure;
-use Havn\Executable\Config\ConcurrencyLimit;
+use Havn\Executable\Attributes\ConcurrencyLimit;
 use Illuminate\Support\Facades\Cache;
 
 /**

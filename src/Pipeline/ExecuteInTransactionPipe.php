@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Havn\Executable\Pipeline;
 
 use Closure;
-use Havn\Executable\Config\ExecuteInTransaction;
+use Havn\Executable\Attributes\ExecuteInTransaction;
 use Illuminate\Support\Facades\DB;
 
 /**

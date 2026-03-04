@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Workbench\App\Executables;
 
-use Havn\Executable\Config\ConcurrencyLimit;
+use Havn\Executable\Attributes\ConcurrencyLimit;
 use Havn\Executable\QueueableExecutable;
 
 class UseConcurrencyLimitExecutable

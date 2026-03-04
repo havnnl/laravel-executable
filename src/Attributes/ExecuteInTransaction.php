@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Havn\Executable\Config;
+namespace Havn\Executable\Attributes;
 
 use Attribute;
 

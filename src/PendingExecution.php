@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Havn\Executable;
 
 use Closure;
-use Havn\Executable\Config\QueueableJobBuilder;
 use Havn\Executable\Exceptions\CannotUseConditionalExecution;
 use Havn\Executable\Jobs\ExecutableSyncJob;
 use Havn\Executable\Support\ExecutableArguments;
+use Havn\Executable\Support\QueueableJobBuilder;
 use Havn\Executable\Testing\Exceptions\CannotQueueMockedExecutable;
 use Havn\Executable\Testing\Exceptions\CannotTestExecutable;
 use Havn\Executable\Testing\Exceptions\CannotTestMockedExecutable;

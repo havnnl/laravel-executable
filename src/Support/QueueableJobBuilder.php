@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Havn\Executable\Config;
+namespace Havn\Executable\Support;
 
+use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\ExecutionMode;
 use Havn\Executable\Jobs\ExecutableJob;
 use Havn\Executable\Jobs\ExecutableUniqueJob;
 use Havn\Executable\Jobs\ExecutableUniqueUntilProcessingJob;
-use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
