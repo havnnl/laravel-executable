@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Havn\Executable\Pipeline;
 
-use Havn\Executable\Attributes\ConcurrencyLimit;
-use Havn\Executable\Attributes\ExecuteInTransaction;
-use Havn\Executable\Contracts\ShouldExecuteInTransaction;
-use Havn\Executable\Support\AttributeReader;
 use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Pipeline\Pipeline;
 
@@ -40,45 +36,11 @@ final class ExecutionPipeline
      */
     private function buildPipeline(): array
     {
+        $config = PipelineConfig::resolve($this->executable, $this->arguments);
+
         return array_filter([
-            $this->concurrencyLimitPipe(),
-            $this->transactionPipe(),
+            $config->concurrencyLimit ? new LimitConcurrencyPipe($config->concurrencyLimit) : null,
+            $config->executeInTransaction ? new ExecuteInTransactionPipe($config->executeInTransaction) : null,
         ]);
-    }
-
-    private function concurrencyLimitPipe(): ?LimitConcurrencyPipe
-    {
-        if (method_exists($this->executable, 'concurrencyLimit')) {
-            return new LimitConcurrencyPipe(
-                $this->arguments->callOn($this->executable, 'concurrencyLimit'),
-            );
-        }
-
-        $attribute = AttributeReader::firstFromClassHierarchy($this->executable, ConcurrencyLimit::class);
-
-        if ($attribute) {
-            return new LimitConcurrencyPipe($attribute);
-        }
-
-        return null;
-    }
-
-    private function transactionPipe(): ?ExecuteInTransactionPipe
-    {
-        $attribute = AttributeReader::firstFromClassHierarchy($this->executable, ExecuteInTransaction::class);
-
-        if ($attribute) {
-            return new ExecuteInTransactionPipe($attribute);
-        }
-
-        if ($this->executable instanceof ShouldExecuteInTransaction) {
-            $attempts = property_exists($this->executable, 'transactionAttempts')
-                ? $this->executable->transactionAttempts
-                : 1;
-
-            return new ExecuteInTransactionPipe(new ExecuteInTransaction($attempts));
-        }
-
-        return null;
     }
 }
