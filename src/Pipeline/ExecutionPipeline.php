@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Havn\Executable\Pipeline;
 
 use Havn\Executable\Config\ConcurrencyLimit;
+use Havn\Executable\Config\ExecuteInTransaction;
 use Havn\Executable\Contracts\ShouldExecuteInTransaction;
 use Havn\Executable\Support\AttributeReader;
 use Havn\Executable\Support\ExecutableArguments;
@@ -64,14 +65,20 @@ final class ExecutionPipeline
 
     private function transactionPipe(): ?ExecuteInTransactionPipe
     {
-        if (! $this->executable instanceof ShouldExecuteInTransaction) {
-            return null;
+        $attribute = AttributeReader::firstFromClassHierarchy($this->executable, ExecuteInTransaction::class);
+
+        if ($attribute) {
+            return new ExecuteInTransactionPipe($attribute);
         }
 
-        $attempts = property_exists($this->executable, 'transactionAttempts')
-            ? $this->executable->transactionAttempts
-            : 1;
+        if ($this->executable instanceof ShouldExecuteInTransaction) {
+            $attempts = property_exists($this->executable, 'transactionAttempts')
+                ? $this->executable->transactionAttempts
+                : 1;
 
-        return new ExecuteInTransactionPipe($attempts);
+            return new ExecuteInTransactionPipe(new ExecuteInTransaction($attempts));
+        }
+
+        return null;
     }
 }

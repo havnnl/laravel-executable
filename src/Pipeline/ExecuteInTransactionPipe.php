@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Havn\Executable\Pipeline;
 
 use Closure;
+use Havn\Executable\Config\ExecuteInTransaction;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -12,10 +13,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class ExecuteInTransactionPipe
 {
-    public function __construct(private int $attempts = 1) {}
+    public function __construct(private ExecuteInTransaction $config) {}
 
     public function handle(mixed $passable, Closure $next): mixed
     {
-        return DB::transaction(fn (): mixed => $next($passable), $this->attempts);
+        return DB::transaction(fn (): mixed => $next($passable), $this->config->attempts);
     }
 }

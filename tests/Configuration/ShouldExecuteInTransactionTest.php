@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Workbench\App\Executables\PlainQueueableExecutable;
+use Workbench\App\Executables\UseTransactionByAttributeExecutable;
+use Workbench\App\Executables\UseTransactionByAttributeWithAttemptsExecutable;
+use Workbench\App\Executables\UseTransactionByInheritedAttributeExecutable;
 use Workbench\App\Executables\UseTransactionExecutable;
 use Workbench\App\Executables\UseTransactionWithAttemptsExecutable;
 
@@ -75,4 +78,54 @@ it('respects transactionAttempts property on queue', function () {
         ->andReturnUsing(fn ($callback) => $callback());
 
     UseTransactionWithAttemptsExecutable::onQueue()->execute('input');
+});
+
+it('executes in transaction in sync when ExecuteInTransaction attribute is used', function () {
+    $result = null;
+
+    DB::shouldReceive('transaction')->once()
+        ->andReturnUsing(function ($callback) use (&$result) {
+            return $result = $callback();
+        });
+
+    UseTransactionByAttributeExecutable::sync()->execute('attribute transaction');
+
+    expect($result)->toBe('attribute transaction');
+});
+
+it('executes in transaction on queue when ExecuteInTransaction attribute is used', function () {
+    $result = null;
+
+    DB::shouldReceive('transaction')->once()
+        ->andReturnUsing(function ($callback) use (&$result) {
+            return $result = $callback();
+        });
+
+    UseTransactionByAttributeExecutable::onQueue()->execute('attribute transaction');
+
+    expect($result)->toBe('attribute transaction');
+});
+
+it('defaults to 1 transaction attempt with ExecuteInTransaction attribute', function () {
+    DB::shouldReceive('transaction')->once()
+        ->withArgs(fn ($callback, $attempts) => is_callable($callback) && $attempts === 1)
+        ->andReturnUsing(fn ($callback) => $callback());
+
+    UseTransactionByAttributeExecutable::sync()->execute('input');
+});
+
+it('respects attempts from ExecuteInTransaction attribute', function () {
+    DB::shouldReceive('transaction')->once()
+        ->withArgs(fn ($callback, $attempts) => is_callable($callback) && $attempts === 3)
+        ->andReturnUsing(fn ($callback) => $callback());
+
+    UseTransactionByAttributeWithAttemptsExecutable::sync()->execute('input');
+});
+
+it('inherits ExecuteInTransaction attribute from parent class', function () {
+    DB::shouldReceive('transaction')->once()
+        ->withArgs(fn ($callback, $attempts) => is_callable($callback) && $attempts === 3)
+        ->andReturnUsing(fn ($callback) => $callback());
+
+    UseTransactionByInheritedAttributeExecutable::sync()->execute('inherited');
 });
