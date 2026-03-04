@@ -6,7 +6,7 @@ namespace Havn\Executable\Jobs;
 
 use DateTimeInterface;
 use Havn\Executable\Config\QueueableConfig;
-use Havn\Executable\Contracts\ShouldExecuteInTransaction;
+use Havn\Executable\Pipeline\ExecutionPipeline;
 use Havn\Executable\QueueableExecutable;
 use Havn\Executable\Support\ExecutableArguments;
 use Illuminate\Bus\Batchable;
@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use ReflectionMethod;
 use Throwable;
 
@@ -85,17 +84,7 @@ class ExecutableJob implements ShouldQueue
     {
         $this->setJobOnExecutable();
 
-        if (! $this->executable instanceof ShouldExecuteInTransaction) {
-            return $this->arguments->callOn($this->executable, 'execute');
-        }
-
-        $attempts = property_exists($this->executable, 'transactionAttempts')
-            ? $this->executable->transactionAttempts
-            : 1;
-
-        return DB::transaction(function (): mixed {
-            return $this->arguments->callOn($this->executable, 'execute');
-        }, $attempts);
+        return (new ExecutionPipeline($this->executable, $this->arguments))->execute();
     }
 
     public function displayName(): string
