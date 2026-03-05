@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Workbench\App\Executables\Analysis;
 
+use Havn\Executable\Config\ConcurrencyLimit;
 use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\QueueableExecutable;
 use Throwable;
@@ -14,6 +15,11 @@ class ValidExecutable
     use QueueableExecutable;
 
     public function execute(SomeModel $user, string $action): void {}
+
+    public function concurrencyLimit(SomeModel $user): ConcurrencyLimit
+    {
+        return new ConcurrencyLimit(key: 'test');
+    }
 
     public function retryUntil(SomeModel $user): ?\DateTimeInterface
     {

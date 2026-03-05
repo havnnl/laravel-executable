@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Havn\Executable\Testing\Analysis;
 
+use Havn\Executable\Config\ConcurrencyLimit;
 use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\QueueableExecutable;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassNode;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleError;
@@ -28,6 +30,7 @@ final class ExecutableParamMismatchRule implements Rule
     private const array LIFECYCLE_METHODS = [
         'configure',
         'backoff',
+        'concurrencyLimit',
         'displayName',
         'retryUntil',
         'tries',
@@ -42,6 +45,11 @@ final class ExecutableParamMismatchRule implements Rule
     private const array FIRST_PARAMETER_TYPES = [
         'failed' => Throwable::class,
         'configure' => QueueableConfig::class,
+    ];
+
+    /** @var array<string, class-string> */
+    private const array RETURN_TYPES = [
+        'concurrencyLimit' => ConcurrencyLimit::class,
     ];
 
     public function getNodeType(): string
@@ -87,8 +95,15 @@ final class ExecutableParamMismatchRule implements Rule
                 continue;
             }
 
-            $params = $classReflection->getNativeMethod($methodName)
-                ->getVariants()[0]->getParameters();
+            $method = $classReflection->getNativeMethod($methodName);
+
+            $returnTypeMismatch = $this->validateReturnType($classReflection, $methodName, $method);
+
+            if ($returnTypeMismatch !== null) {
+                $mismatches[] = $returnTypeMismatch;
+            }
+
+            $params = $method->getVariants()[0]->getParameters();
 
             $firstParamMismatch = $this->validateFirstParameter($classReflection, $methodName, $params);
 
@@ -134,13 +149,40 @@ final class ExecutableParamMismatchRule implements Rule
         return new ParameterMismatch(
             className: $classReflection->getName(),
             methodName: $methodName,
-            parameterName: $firstParam->getName(),
             message: sprintf(
                 'Method %s() must declare %s as its first parameter, found %s $%s',
                 $methodName,
                 ($pos = strrpos($expectedClass, '\\')) !== false ? substr($expectedClass, $pos + 1) : $expectedClass,
                 $firstParam->hasNativeType() ? $nativeType->describe(VerbosityLevel::typeOnly()) : 'mixed',
                 $firstParam->getName(),
+            ),
+            parameterName: $firstParam->getName(),
+        );
+    }
+
+    private function validateReturnType(ClassReflection $classReflection, string $methodName, ExtendedMethodReflection $method): ?ParameterMismatch
+    {
+        $expectedClass = self::RETURN_TYPES[$methodName] ?? null;
+
+        if ($expectedClass === null) {
+            return null;
+        }
+
+        $returnType = $method->getVariants()[0]->getReturnType();
+        $expectedType = new ObjectType($expectedClass);
+
+        if ($expectedType->isSuperTypeOf($returnType)->yes()) {
+            return null;
+        }
+
+        return new ParameterMismatch(
+            className: $classReflection->getName(),
+            methodName: $methodName,
+            message: sprintf(
+                'Method %s() must return %s, found %s',
+                $methodName,
+                ($pos = strrpos($expectedClass, '\\')) !== false ? substr($expectedClass, $pos + 1) : $expectedClass,
+                $returnType->describe(VerbosityLevel::typeOnly()),
             ),
         );
     }
@@ -203,7 +245,6 @@ final class ExecutableParamMismatchRule implements Rule
             return new ParameterMismatch(
                 className: $classReflection->getName(),
                 methodName: $methodName,
-                parameterName: $paramName,
                 message: sprintf(
                     'Parameter $%s on method %s() has type %s matching execute() parameter $%s — did you mean $%s?',
                     $paramName,
@@ -212,6 +253,7 @@ final class ExecutableParamMismatchRule implements Rule
                     $typeMatch->getName(),
                     $typeMatch->getName(),
                 ),
+                parameterName: $paramName,
             );
         }
 
@@ -219,7 +261,6 @@ final class ExecutableParamMismatchRule implements Rule
             return new ParameterMismatch(
                 className: $classReflection->getName(),
                 methodName: $methodName,
-                parameterName: $paramName,
                 message: sprintf(
                     'Parameter $%s on method %s() has type %s but execute() declares $%s as %s',
                     $paramName,
@@ -228,18 +269,19 @@ final class ExecutableParamMismatchRule implements Rule
                     $nameMatch->getName(),
                     $nameMatch->getNativeType()->describe(VerbosityLevel::typeOnly()),
                 ),
+                parameterName: $paramName,
             );
         }
 
         return new ParameterMismatch(
             className: $classReflection->getName(),
             methodName: $methodName,
-            parameterName: $paramName,
             message: sprintf(
                 'Parameter $%s on method %s() is not declared on execute()',
                 $paramName,
                 $methodName,
             ),
+            parameterName: $paramName,
         );
     }
 }

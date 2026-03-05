@@ -7,6 +7,8 @@ namespace Havn\Executable\Tests\Analysis;
 use Havn\Executable\Testing\Analysis\ExecutableParamMismatchRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
+use Workbench\App\Executables\Analysis\ConcurrencyLimitMismatchedParamExecutable;
+use Workbench\App\Executables\Analysis\ConcurrencyLimitWrongReturnTypeExecutable;
 use Workbench\App\Executables\Analysis\ConfigureWithoutQueueableConfigExecutable;
 use Workbench\App\Executables\Analysis\ExtraParameterExecutable;
 use Workbench\App\Executables\Analysis\FailedWithoutThrowableExecutable;
@@ -131,6 +133,34 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
         $this->analyse(
             [__DIR__.'./../../workbench/app/Executables/Analysis/NoLifecycleMethodsExecutable.php'],
             []
+        );
+    }
+
+    /** @see ConcurrencyLimitMismatchedParamExecutable */
+    public function test_detects_extra_parameter_on_concurrency_limit(): void
+    {
+        $this->analyse(
+            [__DIR__.'./../../workbench/app/Executables/Analysis/ConcurrencyLimitMismatchedParamExecutable.php'],
+            [
+                [
+                    'Parameter $label on method concurrencyLimit() is not declared on execute()',
+                    11,
+                ],
+            ]
+        );
+    }
+
+    /** @see ConcurrencyLimitWrongReturnTypeExecutable */
+    public function test_flags_wrong_return_type_on_concurrency_limit(): void
+    {
+        $this->analyse(
+            [__DIR__.'./../../workbench/app/Executables/Analysis/ConcurrencyLimitWrongReturnTypeExecutable.php'],
+            [
+                [
+                    'Method concurrencyLimit() must return ConcurrencyLimit, found string',
+                    10,
+                ],
+            ]
         );
     }
 
