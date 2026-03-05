@@ -2,6 +2,13 @@
 
 All notable changes to `laravel-executable` will be documented in this file.
 
+## v1.2.0 - 2026-03-05
+
+- Add concurrency limiting via `concurrencyLimit()` method or `#[ConcurrencyLimit]` attribute
+- Add `#[ExecuteInTransaction]` attribute as alternative to `ShouldExecuteInTransaction` interface
+- Add `PushedJob::assertHasConcurrencyLimit()` and `PushedJob::assertExecutesInTransaction()` assertions
+- Improve variadic parameter support on execute()
+
 ## v1.1.0 - 2026-02-25
 
 - Add PHPStan extension to resolve execute() return types
