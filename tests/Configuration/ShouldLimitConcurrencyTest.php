@@ -191,6 +191,13 @@ it('inherits ConcurrencyLimit attribute from parent class', function () {
     expect($result)->toBe('inherited');
 });
 
+it('throws when concurrencyLimit method returns wrong type', function () {
+    \Workbench\App\Executables\UseConcurrencyLimitWithInvalidReturnExecutable::sync()->execute('invalid');
+})->throws(
+    RuntimeException::class,
+    'must return a Havn\Executable\Attributes\ConcurrencyLimit instance, got string',
+);
+
 it('prioritizes concurrencyLimit method over ConcurrencyLimit attribute', function () {
     Cache::shouldReceive('withoutOverlapping')
         ->once()

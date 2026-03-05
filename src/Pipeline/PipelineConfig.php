@@ -30,11 +30,22 @@ final class PipelineConfig
 
     private static function resolveConcurrencyLimit(object $executable, ExecutableArguments $arguments): ?ConcurrencyLimit
     {
-        if (method_exists($executable, 'concurrencyLimit')) {
-            return $arguments->callOn($executable, 'concurrencyLimit');
+        if (! method_exists($executable, 'concurrencyLimit')) {
+            return AttributeReader::firstFromClassHierarchy($executable, ConcurrencyLimit::class);
         }
 
-        return AttributeReader::firstFromClassHierarchy($executable, ConcurrencyLimit::class);
+        $result = $arguments->callOn($executable, 'concurrencyLimit');
+
+        if (! $result instanceof ConcurrencyLimit) {
+            throw new \RuntimeException(sprintf(
+                '%s::concurrencyLimit() must return a %s instance, got %s.',
+                get_class($executable),
+                ConcurrencyLimit::class,
+                get_debug_type($result),
+            ));
+        }
+
+        return $result;
     }
 
     private static function resolveExecuteInTransaction(object $executable): ?ExecuteInTransaction
