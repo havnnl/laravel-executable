@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Havn\Executable\Support;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Queue\SerializesAndRestoresModelIdentifiers;
-use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
 
@@ -31,32 +29,26 @@ final class ExecutableArguments
             throw new RuntimeException('Executable must have an execute() method.');
         }
 
-        $parameters = (new ReflectionClass($executable))
-            ->getMethod('execute')
-            ->getParameters();
-
-        $lastParam = end($parameters);
-        $isVariadic = $lastParam && $lastParam->isVariadic();
-        $nonVariadicParams = $isVariadic ? array_slice($parameters, 0, -1) : $parameters;
+        $executeParameters = (new ReflectionMethod($executable, 'execute'))->getParameters();
 
         $resolved = [];
-        $positionalIndex = 0;
+        $positionalArguments = array_values(array_filter($arguments, is_int(...), ARRAY_FILTER_USE_KEY));
 
-        foreach ($nonVariadicParams as $parameter) {
-            $name = $parameter->getName();
+        foreach ($executeParameters as $executeParameter) {
+            if ($executeParameter->isVariadic()) {
+                break;
+            }
+
+            $name = $executeParameter->getName();
 
             if (array_key_exists($name, $arguments)) {
                 $resolved[$name] = $arguments[$name];
-            } elseif (array_key_exists($positionalIndex, $arguments)) {
-                $resolved[$name] = $arguments[$positionalIndex];
-                $positionalIndex++;
+            } elseif ($positionalArguments) {
+                $resolved[$name] = array_shift($positionalArguments);
             }
         }
 
-        while ($isVariadic && array_key_exists($positionalIndex, $arguments)) {
-            $resolved[$positionalIndex] = $arguments[$positionalIndex];
-            $positionalIndex++;
-        }
+        array_push($resolved, ...$positionalArguments);
 
         return new self($resolved);
     }
@@ -71,13 +63,33 @@ final class ExecutableArguments
 
     public function callOn(object $target, string $method): mixed
     {
-        $filtered = $this->filterPartiallyVariadicArguments($target, $method);
+        $parameters = (new ReflectionMethod($target, $method))->getParameters();
+
+        $methodNamedArguments = [];
+
+        foreach ($parameters as $parameter) {
+            $name = $parameter->getName();
+
+            if (array_key_exists($name, $this->arguments)) {
+                $methodNamedArguments[] = $this->arguments[$name];
+            } else {
+                break;
+            }
+        }
 
         try {
-            return app()->call([$target, $method], $filtered);
-        } catch (BindingResolutionException) {
-            return $target->{$method}(...array_values($filtered));
+            return $target->{$method}(...$methodNamedArguments, ...$this->variadicArguments());
+        } catch (\ArgumentCountError) {
+            return $target->{$method}(...$this->values());
         }
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    private function variadicArguments(): array
+    {
+        return array_values(array_filter($this->arguments, is_int(...), ARRAY_FILTER_USE_KEY));
     }
 
     /**
@@ -127,44 +139,5 @@ final class ExecutableArguments
     public function values(): array
     {
         return array_values($this->arguments);
-    }
-
-    /**
-     * When execute() mixes named and variadic params (e.g. `execute(string $name, string ...$input)`),
-     * resolved arguments contain both string-keyed and int-keyed entries. In that case we need to
-     * filter out string-keyed entries that don't match the target method's parameters, so we
-     * prevent them from being passed as extra positional args by app()->call().
-     *
-     * @return array<int|string, mixed>
-     */
-    private function filterPartiallyVariadicArguments(object $target, string $method): array
-    {
-        // $this->arguments is empty or all values are positional
-        if (array_is_list($this->arguments)) {
-            return $this->arguments;
-        }
-
-        // all values are string-keyed
-        if (! array_filter(array_keys($this->arguments), 'is_int')) {
-            return $this->arguments;
-        }
-
-        $parameters = (new ReflectionMethod($target, $method))->getParameters();
-
-        $paramNames = [];
-
-        foreach ($parameters as $parameter) {
-            if ($parameter->isVariadic()) {
-                break;
-            }
-
-            $paramNames[] = $parameter->getName();
-        }
-
-        return array_filter(
-            $this->arguments,
-            fn (int|string $key): bool => is_int($key) || in_array($key, $paramNames, true),
-            ARRAY_FILTER_USE_KEY,
-        );
     }
 }

@@ -6,7 +6,6 @@ use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Havn\Executable\Jobs\ExecutableUniqueJob;
 use Havn\Executable\Support\ExecutableArguments;
-use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\DynamicInjection\ConfigNameCollisionExecutable;
 use Workbench\App\Executables\DynamicInjection\ConfigNameCollisionWithRenamedQueueableConfigExecutable;
@@ -16,7 +15,6 @@ use Workbench\App\Executables\DynamicInjection\PartialConfigureExecutable;
 use Workbench\App\Executables\DynamicInjection\PartialFailedExecutable;
 use Workbench\App\Executables\DynamicInjection\PartialSignatureExecutable;
 use Workbench\App\Executables\DynamicInjection\PartialUniqueIdExecutable;
-use Workbench\App\Executables\DynamicInjection\ServiceInjectionExecutable;
 use Workbench\App\Executables\DynamicInjection\SubclassFailedExecutable;
 use Workbench\App\Executables\DynamicInjection\ThrowableNameCollisionExecutable;
 use Workbench\App\Executables\DynamicInjection\ZeroParameterExecutable;
@@ -28,10 +26,6 @@ afterEach(function () {
         $_SERVER['_partial_signature_tags_amount'],
         $_SERVER['_partial_signature_middleware_order_id'],
         $_SERVER['_partial_signature_tries_amount'],
-        $_SERVER['_service_injection_cache_instance'],
-        $_SERVER['_service_injection_order_id'],
-        $_SERVER['_service_injection_tags_cache_instance'],
-        $_SERVER['_service_injection_tags_amount'],
         $_SERVER['_partial_failed_exception'],
         $_SERVER['_partial_failed_order_id'],
         $_SERVER['_partial_configure_config'],
@@ -105,37 +99,6 @@ describe('named resolution with partial signatures', function () {
 
         Queue::assertPushed(function (ExecutableJob $job) {
             return expect($job->tries)->toBe(3);
-        });
-    });
-});
-
-describe('service injection in config methods', function () {
-    beforeEach(function () {
-        Queue::fake();
-    });
-
-    it('resolves both a container service and a named execute parameter in displayName', function () {
-        ServiceInjectionExecutable::onQueue()->execute('ORD-789', 250);
-
-        Queue::assertPushed(function (ExecutableJob $job) {
-            expect($_SERVER['_service_injection_cache_instance'])->toBeInstanceOf(Repository::class)
-                ->and($_SERVER['_service_injection_order_id'])->toBe('ORD-789');
-
-            return expect($job->displayName)->toBe('cached-order-ORD-789');
-        });
-    });
-
-    it('resolves both a container service and a named execute parameter in tags', function () {
-        ServiceInjectionExecutable::onQueue()->execute('ORD-789', 250);
-
-        Queue::assertPushed(function (ExecutableJob $job) {
-            expect($job->tags())->toBe(['amount:250']);
-
-            // tags() is called lazily, so $_SERVER values are set after the call above
-            expect($_SERVER['_service_injection_tags_cache_instance'])->toBeInstanceOf(Repository::class)
-                ->and($_SERVER['_service_injection_tags_amount'])->toBe(250);
-
-            return true;
         });
     });
 });
