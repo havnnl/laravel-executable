@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-executable` will be documented in this file.
 
+## v1.2.1 - 2026-03-06
+
+- Fix container resolving optional parameters that weren't passed
+
 ## v1.2.0 - 2026-03-05
 
 - Add concurrency limiting via `concurrencyLimit()` method or `#[ConcurrencyLimit]` attribute
