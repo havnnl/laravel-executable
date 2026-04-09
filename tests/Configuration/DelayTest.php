@@ -6,6 +6,7 @@ use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
+use Workbench\App\Executables\Configuration\DelayByAttributeExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
@@ -20,6 +21,14 @@ it('can be dispatched without specifying delay', function (): void {
         return expect($job->delay)->toBeNull();
     });
 });
+
+it('can set delay by attribute', function () {
+    DelayByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->delay)->toBe(60);
+    });
+})->skipBeforeLaravel('13.4.0');
 
 it('can set delay on property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

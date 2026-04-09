@@ -7,6 +7,7 @@ use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
+use Workbench\App\Executables\Configuration\TimeoutByAttributeExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
 beforeEach(function () {
@@ -20,6 +21,14 @@ it('can be dispatched without specifying timeout', function (): void {
         return expect($job->timeout)->toBeNull();
     });
 });
+
+it('can set timeout by attribute', function () {
+    TimeoutByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->timeout)->toBe(120);
+    });
+})->skipBeforeLaravel(13);
 
 it('can set timeout by property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

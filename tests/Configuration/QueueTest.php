@@ -7,11 +7,20 @@ use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
+use Workbench\App\Executables\Configuration\QueueByAttributeExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
 beforeEach(function () {
     Queue::fake();
 });
+
+it('can set queue by attribute', function () {
+    QueueByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->queue)->toBe('high');
+    });
+})->skipBeforeLaravel(13);
 
 it('can set queue on property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

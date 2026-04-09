@@ -6,6 +6,7 @@ use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
+use Workbench\App\Executables\Configuration\FailOnTimeoutByAttributeExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
@@ -20,6 +21,14 @@ it('can be dispatched without specifying fail on timeout', function (): void {
         return expect($job->failOnTimeout)->toBeNull();
     });
 });
+
+it('can set fail on timeout by attribute', function () {
+    FailOnTimeoutByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->failOnTimeout)->toBeTrue();
+    });
+})->skipBeforeLaravel(13);
 
 it('can set fail on timeout by property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

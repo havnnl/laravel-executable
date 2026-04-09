@@ -7,6 +7,7 @@ use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
+use Workbench\App\Executables\Configuration\MaxExceptionsByAttributeExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
 beforeEach(function () {
@@ -20,6 +21,14 @@ it('can be dispatched without specifying max exceptions', function (): void {
         return expect($job->maxExceptions)->toBeNull();
     });
 });
+
+it('can set max exceptions by attribute', function () {
+    MaxExceptionsByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->maxExceptions)->toBe(3);
+    });
+})->skipBeforeLaravel(13);
 
 it('can set max exceptions by property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

@@ -7,16 +7,45 @@ use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Havn\Executable\Jobs\ExecutableUniqueJob;
 use Illuminate\Support\Facades\Queue;
+use Workbench\App\Executables\Configuration\ChildInheritsAttributesExecutable;
 use Workbench\App\Executables\Configuration\ConfigHookOverridesPropertyExecutable;
 use Workbench\App\Executables\Configuration\DispatchOverridesAllConfigExecutable;
 use Workbench\App\Executables\Configuration\InterfaceAndAttributeOverridePropertyExecutable;
 use Workbench\App\Executables\Configuration\MethodOverridesConfigHookExecutable;
+use Workbench\App\Executables\Configuration\TimeoutAttributeAndPropertyExecutable;
+use Workbench\App\Executables\Configuration\TimeoutRuntimeOverrideExecutable;
 
 beforeEach(function () {
     Queue::fake();
 
     Carbon::setTestNow(now());
 });
+
+it('inherits attributes from parent class', function () {
+    ChildInheritsAttributesExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->deleteWhenMissingModels)->toBeTrue()
+            ->and($job->withoutRelations)->toBeTrue()
+            ->and($job->tries)->toBe(3);
+    });
+})->skipBeforeLaravel(13);
+
+it('gives priority to attribute over declared-default property', function () {
+    TimeoutAttributeAndPropertyExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->timeout)->toBe(99);
+    });
+})->skipBeforeLaravel(13);
+
+it('gives priority to runtime-modified property over attribute', function () {
+    TimeoutRuntimeOverrideExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->timeout)->toBe(42);
+    });
+})->skipBeforeLaravel(13);
 
 it('gives priority to interfaces and attributes over properties', function () {
     InterfaceAndAttributeOverridePropertyExecutable::onQueue()->execute();

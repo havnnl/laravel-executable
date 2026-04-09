@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigMethodReturnsInputExecutable;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
+use Workbench\App\Executables\Configuration\TriesByAttributeExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
 beforeEach(function () {
@@ -21,6 +22,14 @@ it('can be dispatched without specifying tries', function (): void {
         return expect($job->tries)->toBeNull();
     });
 });
+
+it('can set tries by attribute', function () {
+    TriesByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->tries)->toBe(3);
+    });
+})->skipBeforeLaravel(13);
 
 it('can set tries by property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

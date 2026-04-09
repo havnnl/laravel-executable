@@ -9,11 +9,20 @@ use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigMethodReturnsInputExecutable;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
+use Workbench\App\Executables\Configuration\UniqueForByAttributeExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
 beforeEach(function () {
     Queue::fake();
 });
+
+it('can set unique for by attribute for unique executable', function () {
+    UniqueForByAttributeExecutable::onQueue()->shouldBeUnique()->execute();
+
+    Queue::assertPushed(function (ExecutableUniqueJob $job) {
+        return expect($job->uniqueFor)->toBe(300);
+    });
+})->skipBeforeLaravel(13);
 
 it('can set unique for on property for unique executable', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->shouldBeUnique()->execute();
@@ -93,4 +102,4 @@ it('can set unique for on dispatch for unique until processing executable', func
 
 it('does not support unique jobs for batches and chains', function () {
     PlainQueueableExecutable::prepare()->withUniqueFor(480)->execute();
-})->throws(\BadMethodCallException::class);
+})->throws(BadMethodCallException::class);

@@ -10,7 +10,16 @@ use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Connection;
+use Illuminate\Queue\Attributes\Delay;
 use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\FailOnTimeout;
+use Illuminate\Queue\Attributes\MaxExceptions;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Queue\Attributes\WithoutRelations;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
@@ -74,7 +83,16 @@ final class SyncExecutableWithQueueFeaturesRule implements Rule
 
     /** @var list<class-string> */
     private const array QUEUE_ATTRIBUTES = [
+        Backoff::class,
+        Connection::class,
+        Delay::class,
         DeleteWhenMissingModels::class,
+        FailOnTimeout::class,
+        MaxExceptions::class,
+        Queue::class,
+        Timeout::class,
+        Tries::class,
+        UniqueFor::class,
         WithoutRelations::class,
     ];
 

@@ -6,12 +6,21 @@ use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
+use Workbench\App\Executables\Configuration\ConnectionByAttributeExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
 use Workbench\App\Executables\PlainQueueableExecutable;
 
 beforeEach(function () {
     Queue::fake();
 });
+
+it('can set connection by attribute', function () {
+    ConnectionByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->connection)->toBe('redis');
+    });
+})->skipBeforeLaravel(13);
 
 it('can set connection on property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

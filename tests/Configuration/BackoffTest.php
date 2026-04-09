@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Havn\Executable\Config\QueueableConfig;
 use Havn\Executable\Jobs\ExecutableJob;
 use Illuminate\Support\Facades\Queue;
+use Workbench\App\Executables\Configuration\BackoffArrayByAttributeExecutable;
+use Workbench\App\Executables\Configuration\BackoffByAttributeExecutable;
 use Workbench\App\Executables\Configuration\ConfigMethodReturnsInputExecutable;
 use Workbench\App\Executables\Configuration\ConfigureByConfigHookExecutable;
 use Workbench\App\Executables\Configuration\FullyConfiguredByPropertiesExecutable;
@@ -21,6 +23,22 @@ it('has no backoff by default', function (): void {
         return expect($job->backoff)->toBeNull();
     });
 });
+
+it('can set backoff by attribute', function () {
+    BackoffByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->backoff)->toBe(5);
+    });
+})->skipBeforeLaravel(13);
+
+it('can set backoff array by attribute', function () {
+    BackoffArrayByAttributeExecutable::onQueue()->execute();
+
+    Queue::assertPushed(function (ExecutableJob $job) {
+        return expect($job->backoff)->toBe([1, 5, 10]);
+    });
+})->skipBeforeLaravel(13);
 
 it('can set backoff by property', function () {
     FullyConfiguredByPropertiesExecutable::onQueue()->execute();

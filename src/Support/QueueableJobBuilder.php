@@ -13,7 +13,16 @@ use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Connection;
+use Illuminate\Queue\Attributes\Delay;
 use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\FailOnTimeout;
+use Illuminate\Queue\Attributes\MaxExceptions;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Queue\Attributes\WithoutRelations;
 use ReflectionClass;
 
@@ -24,9 +33,6 @@ final class QueueableJobBuilder
 {
     /** @var array<string, array<int, mixed>> */
     private array $invocationCalls = [];
-
-    /** @var ReflectionClass<object>|null */
-    private ?ReflectionClass $reflection = null;
 
     public function __construct(
         private object $executable,
@@ -75,32 +81,33 @@ final class QueueableJobBuilder
     {
         return new QueueableConfig(
             afterCommit: $this->executable instanceof ShouldQueueAfterCommit ?: $this->readProperty('afterCommit'),
-            backoff: $this->readProperty('backoff'),
+            backoff: AttributeReader::resolveValue($this->executable, Backoff::class, 'backoff'),
             chainConnection: $this->readProperty('chainConnection'),
             chainQueue: $this->readProperty('chainQueue'),
-            connection: $this->readProperty('connection'),
-            delay: $this->readProperty('delay'),
-            deleteWhenMissingModels: $this->hasAttributeOrNull(DeleteWhenMissingModels::class) ?? $this->readProperty('deleteWhenMissingModels'),
-            failOnTimeout: $this->readProperty('failOnTimeout'),
-            maxExceptions: $this->readProperty('maxExceptions'),
-            queue: $this->readProperty('queue'),
+            connection: AttributeReader::resolveValue($this->executable, Connection::class, 'connection'),
+            delay: AttributeReader::resolveValue($this->executable, Delay::class, 'delay'),
+            deleteWhenMissingModels: AttributeReader::resolveValue($this->executable, DeleteWhenMissingModels::class, 'deleteWhenMissingModels'),
+            failOnTimeout: AttributeReader::resolveValue($this->executable, FailOnTimeout::class, 'failOnTimeout'),
+            maxExceptions: AttributeReader::resolveValue($this->executable, MaxExceptions::class, 'maxExceptions'),
+            queue: AttributeReader::resolveValue($this->executable, Queue::class, 'queue'),
             retryUntil: $this->readProperty('retryUntil'),
             shouldBeEncrypted: $this->executable instanceof ShouldBeEncrypted ?: $this->readProperty('shouldBeEncrypted'),
             shouldBeUnique: $this->executable instanceof ShouldBeUnique && ! $this->executable instanceof ShouldBeUniqueUntilProcessing,
             shouldBeUniqueUntilProcessing: $this->executable instanceof ShouldBeUniqueUntilProcessing,
-            timeout: $this->readProperty('timeout'),
-            tries: $this->readProperty('tries'),
-            uniqueFor: $this->readProperty('uniqueFor'),
+            timeout: AttributeReader::resolveValue($this->executable, Timeout::class, 'timeout'),
+            tries: AttributeReader::resolveValue($this->executable, Tries::class, 'tries'),
+            uniqueFor: AttributeReader::resolveValue($this->executable, UniqueFor::class, 'uniqueFor'),
             uniqueId: $this->readProperty('uniqueId'),
-            withoutRelations: $this->hasAttributeOrNull(WithoutRelations::class) ?? $this->readProperty('withoutRelations'),
+            withoutRelations: AttributeReader::resolveValue($this->executable, WithoutRelations::class, 'withoutRelations'),
         );
     }
 
     private function applyConfigFromHook(QueueableConfig $config, ExecutableArguments $arguments): void
     {
         if (method_exists($this->executable, 'configure')) {
-            $this->reflection ??= new ReflectionClass($this->executable);
-            $firstParam = $this->reflection->getMethod('configure')->getParameters()[0] ?? null;
+            $firstParam = (new ReflectionClass($this->executable))
+                ->getMethod('configure')
+                ->getParameters()[0] ?? null;
             $configArgs = $firstParam ? [$firstParam->getName() => $config] : [];
 
             $arguments->with($configArgs)
@@ -147,15 +154,6 @@ final class QueueableJobBuilder
 
     private function readProperty(string $property): mixed
     {
-        return property_exists($this->executable, $property)
-            ? $this->executable->{$property}
-            : null;
-    }
-
-    private function hasAttributeOrNull(string $attributeClass): ?bool
-    {
-        $this->reflection ??= new ReflectionClass($this->executable);
-
-        return ! empty($this->reflection->getAttributes($attributeClass)) ? true : null;
+        return $this->executable->{$property} ?? null;
     }
 }
