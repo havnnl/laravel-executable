@@ -115,7 +115,7 @@ final class ExecutionManager
     private function pushedBatches(): Collection
     {
         return collect(Bus::batched(fn () => true))
-            ->map(fn (PendingBatchFake $batch) => new PushedBatch($batch));
+            ->map(fn (PendingBatchFake $batch) => new PushedBatch($batch)); // @phpstan-ignore argument.type
     }
 
     /**
