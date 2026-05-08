@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-executable` will be documented in this file.
 
+## v1.3.0 - 2026-05-08
+
+- Add support for Laravel 13 queue attributes (`#[Tries]`, `#[Timeout]`, `#[Backoff]`, `#[Queue]`, `#[Connection]`, `#[Delay]`, `#[MaxExceptions]`, `#[FailOnTimeout]`, `#[DeleteWhenMissingModels]`, `#[UniqueFor]`, `#[WithoutRelations]`)
+
 ## v1.2.1 - 2026-03-06
 
 - Fix container resolving optional parameters that weren't passed
