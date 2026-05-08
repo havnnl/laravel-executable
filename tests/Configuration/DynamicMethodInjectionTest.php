@@ -182,7 +182,7 @@ describe('failed with Throwable and partial execute params', function () {
             // exception expected
         }
 
-        expect($_SERVER['_subclass_failed_exception'])->toBeInstanceOf(\Exception::class)
+        expect($_SERVER['_subclass_failed_exception'])->toBeInstanceOf(Exception::class)
             ->and($_SERVER['_subclass_failed_exception']->getMessage())->toBe('Subclass failure')
             ->and($_SERVER['_subclass_failed_order_id'])->toBe('ORD-SUB');
     });
@@ -278,7 +278,7 @@ describe('in-flight job backwards compatibility', function () {
     });
 
     it('resolves failed with integer-keyed arguments via positional fallback', function () {
-        $exception = new \Exception('In-flight failure');
+        $exception = new Exception('In-flight failure');
         $job = new ExecutableJob(new FullSignatureExecutable, ExecutableArguments::from([0 => 'ORD-OLD', 1 => 300]), new QueueableConfig);
 
         $job->failed($exception);

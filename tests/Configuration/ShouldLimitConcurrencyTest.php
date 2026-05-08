@@ -10,6 +10,7 @@ use Workbench\App\Executables\UseConcurrencyLimitByAttributeWithOptionsExecutabl
 use Workbench\App\Executables\UseConcurrencyLimitByInheritedAttributeExecutable;
 use Workbench\App\Executables\UseConcurrencyLimitByMethodAndAttributeExecutable;
 use Workbench\App\Executables\UseConcurrencyLimitExecutable;
+use Workbench\App\Executables\UseConcurrencyLimitWithInvalidReturnExecutable;
 use Workbench\App\Executables\UseConcurrencyLimitWithOptionsExecutable;
 use Workbench\App\Executables\UseConcurrencyLimitWithParamsExecutable;
 use Workbench\App\Executables\UseConcurrencyLimitWithTransactionExecutable;
@@ -192,7 +193,7 @@ it('inherits ConcurrencyLimit attribute from parent class', function () {
 });
 
 it('throws when concurrencyLimit method returns wrong type', function () {
-    \Workbench\App\Executables\UseConcurrencyLimitWithInvalidReturnExecutable::sync()->execute('invalid');
+    UseConcurrencyLimitWithInvalidReturnExecutable::sync()->execute('invalid');
 })->throws(
     RuntimeException::class,
     'must return a Havn\Executable\Attributes\ConcurrencyLimit instance, got string',

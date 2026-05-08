@@ -6,6 +6,7 @@ use Havn\Executable\Testing\Queueing\PushedBatch;
 use Havn\Executable\Testing\Queueing\PushedJob;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
+use PHPUnit\Framework\ExpectationFailedException;
 use Symfony\Component\VarDumper\VarDumper;
 use Workbench\App\Executables\UseTransactionExecutable;
 use Workbench\App\Jobs\SimpleEncryptedJob;
@@ -212,7 +213,7 @@ it('fails asserting connection', function () {
     $this->batch->shouldReceive('connection')->andReturn('sync');
 
     expect(fn () => $this->sut->assertIsOnConnection('redis'))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch is on connection [sync] instead of [redis]');
+        ->toThrow(ExpectationFailedException::class, 'Batch is on connection [sync] instead of [redis]');
 });
 
 it('asserts queue', function () {
@@ -225,7 +226,7 @@ it('fails asserting queue', function () {
     $this->batch->shouldReceive('queue')->andReturn('default');
 
     expect(fn () => $this->sut->assertIsOnQueue('high-priority'))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch is on queue [default] instead of [high-priority]');
+        ->toThrow(ExpectationFailedException::class, 'Batch is on queue [default] instead of [high-priority]');
 });
 
 it('asserts allows failures', function () {
@@ -238,7 +239,7 @@ it('fails asserting allows failures', function () {
     $this->batch->shouldReceive('allowsFailures')->andReturnFalse();
 
     expect(fn () => $this->sut->assertAllowsFailures())
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not allow failures');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not allow failures');
 });
 
 it('asserts has name', function () {
@@ -251,7 +252,7 @@ it('fails asserting has name', function () {
     $this->batch->name = 'user-processing';
 
     expect(fn () => $this->sut->assertHasName('order-processing'))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch has name [user-processing] instead of [order-processing]');
+        ->toThrow(ExpectationFailedException::class, 'Batch has name [user-processing] instead of [order-processing]');
 });
 
 it('asserts contains progress callback', function () {
@@ -264,7 +265,7 @@ it('fails asserting contains progress callback', function () {
     $this->batch->shouldReceive('progressCallbacks')->andReturn([]);
 
     expect(fn () => $this->sut->assertContainsProgressCallback())
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain expected progress callback');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain expected progress callback');
 });
 
 it('asserts contains before callback', function () {
@@ -277,7 +278,7 @@ it('fails asserting contains before callback', function () {
     $this->batch->shouldReceive('beforeCallbacks')->andReturn([]);
 
     expect(fn () => $this->sut->assertContainsBeforeCallback())
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain expected before callback');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain expected before callback');
 });
 
 it('asserts contains then callback', function () {
@@ -290,7 +291,7 @@ it('fails asserting contains then callback', function () {
     $this->batch->shouldReceive('thenCallbacks')->andReturn([]);
 
     expect(fn () => $this->sut->assertContainsThenCallback())
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain expected then callback');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain expected then callback');
 });
 
 it('asserts contains catch callback', function () {
@@ -303,7 +304,7 @@ it('fails asserting contains catch callback', function () {
     $this->batch->shouldReceive('catchCallbacks')->andReturn([]);
 
     expect(fn () => $this->sut->assertContainsCatchCallback())
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain expected catch callback');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain expected catch callback');
 });
 
 it('asserts contains finally callback', function () {
@@ -316,7 +317,7 @@ it('fails asserting contains finally callback', function () {
     $this->batch->shouldReceive('finallyCallbacks')->andReturn([]);
 
     expect(fn () => $this->sut->assertContainsFinallyCallback())
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain expected finally callback');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain expected finally callback');
 });
 
 it('asserts has option', function () {
@@ -330,7 +331,7 @@ it('fails asserting has option', function () {
     $this->batch->options = [];
 
     expect(fn () => $this->sut->assertHasOption('timeout'))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not have expected option: [timeout]');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not have expected option: [timeout]');
 });
 
 it('asserts has count', function () {
@@ -346,7 +347,7 @@ it('fails asserting has count', function () {
     $this->batch->jobs = collect([new SimpleJob]);
 
     expect(fn () => $this->sut->assertHasCount(2))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch has [1] jobs instead of [2]');
+        ->toThrow(ExpectationFailedException::class, 'Batch has [1] jobs instead of [2]');
 });
 
 it('asserts contains job', function () {
@@ -363,7 +364,7 @@ it('fails asserting contains job', function () {
     $this->batch->jobs = collect([new SimpleJob]);
 
     expect(fn () => $this->sut->assertContains(SimpleEncryptedJob::class))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain expected job');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain expected job');
 });
 
 it('asserts contains exactly', function () {
@@ -380,5 +381,5 @@ it('fails asserting contains exactly', function () {
     $this->batch->jobs = collect([new SimpleJob]);
 
     expect(fn () => $this->sut->assertContainsExactly([SimpleJob::class, UseTransactionExecutable::class]))
-        ->toThrow(PHPUnit\Framework\ExpectationFailedException::class, 'Batch does not contain exactly the expected jobs');
+        ->toThrow(ExpectationFailedException::class, 'Batch does not contain exactly the expected jobs');
 });

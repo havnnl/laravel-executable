@@ -39,4 +39,4 @@ it('can be unique on dispatch', function () {
 
 it('does not support unique jobs for batches and chains', function () {
     PlainQueueableExecutable::prepare()->shouldBeUnique()->execute();
-})->throws(\BadMethodCallException::class);
+})->throws(BadMethodCallException::class);

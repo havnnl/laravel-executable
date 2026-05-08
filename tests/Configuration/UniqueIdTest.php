@@ -81,4 +81,4 @@ it('can set unique id on dispatch for unique until processing executable', funct
 
 it('does not support unique jobs for batches and chains', function () {
     PlainQueueableExecutable::prepare()->withUniqueId(107)->execute();
-})->throws(\BadMethodCallException::class);
+})->throws(BadMethodCallException::class);
