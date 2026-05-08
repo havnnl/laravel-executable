@@ -7,6 +7,7 @@ namespace Havn\Executable\Tests\Analysis;
 use Havn\Executable\Testing\Analysis\DirectExecuteCallRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use Workbench\App\Executables\Analysis\DirectExecuteCallFixture;
 use Workbench\App\Executables\Analysis\SafeExecuteCallFixture;
 
@@ -21,6 +22,7 @@ final class DirectExecuteCallRuleTest extends RuleTestCase
     }
 
     /** @see DirectExecuteCallFixture */
+    #[WithoutErrorHandler]
     public function test_flags_direct_execute_call(): void
     {
         $this->analyse(
@@ -35,6 +37,7 @@ final class DirectExecuteCallRuleTest extends RuleTestCase
     }
 
     /** @see SafeExecuteCallFixture */
+    #[WithoutErrorHandler]
     public function test_allows_execute_via_sync_and_queue(): void
     {
         $this->analyse(

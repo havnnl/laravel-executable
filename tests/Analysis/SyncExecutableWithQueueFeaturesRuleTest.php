@@ -7,6 +7,7 @@ namespace Havn\Executable\Tests\Analysis;
 use Havn\Executable\Testing\Analysis\SyncExecutableWithQueueFeaturesRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use Workbench\App\Executables\Analysis\CleanSyncExecutable;
 use Workbench\App\Executables\Analysis\SyncWithAllQueueFeaturesExecutable;
 use Workbench\App\Executables\Analysis\SyncWithLifecycleMethodsExecutable;
@@ -26,6 +27,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see CleanSyncExecutable */
+    #[WithoutErrorHandler]
     public function test_no_errors_on_clean_sync_executable(): void
     {
         $this->analyse(
@@ -35,6 +37,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see ValidExecutable */
+    #[WithoutErrorHandler]
     public function test_no_errors_on_queueable_executable_with_queue_features(): void
     {
         $this->analyse(
@@ -44,6 +47,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see SyncWithQueuePropertiesExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_queue_properties_on_sync_executable(): void
     {
         $this->analyse(
@@ -62,6 +66,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see SyncWithLifecycleMethodsExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_lifecycle_methods_on_sync_executable(): void
     {
         $this->analyse(
@@ -80,6 +85,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see SyncWithQueueInterfacesExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_queue_interfaces_on_sync_executable(): void
     {
         $this->analyse(
@@ -94,6 +100,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see SyncWithQueueAttributesExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_queue_attributes_on_sync_executable(): void
     {
         $this->analyse(
@@ -108,6 +115,7 @@ final class SyncExecutableWithQueueFeaturesRuleTest extends RuleTestCase
     }
 
     /** @see SyncWithAllQueueFeaturesExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_all_four_categories(): void
     {
         $this->analyse(

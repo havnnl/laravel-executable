@@ -7,6 +7,7 @@ namespace Havn\Executable\Tests\Analysis;
 use Havn\Executable\Testing\Analysis\ExecutableParamMismatchRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use Workbench\App\Executables\Analysis\ConcurrencyLimitMismatchedParamExecutable;
 use Workbench\App\Executables\Analysis\ConcurrencyLimitWrongReturnTypeExecutable;
 use Workbench\App\Executables\Analysis\ConfigureWithoutQueueableConfigExecutable;
@@ -31,6 +32,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see ValidExecutable */
+    #[WithoutErrorHandler]
     public function test_valid_executable_has_no_errors(): void
     {
         $this->analyse(
@@ -40,6 +42,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see MismatchedNameExecutable */
+    #[WithoutErrorHandler]
     public function test_detects_mismatched_name(): void
     {
         $this->analyse(
@@ -54,6 +57,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see MismatchedTypeExecutable */
+    #[WithoutErrorHandler]
     public function test_detects_mismatched_type(): void
     {
         $this->analyse(
@@ -68,6 +72,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see ExtraParameterExecutable */
+    #[WithoutErrorHandler]
     public function test_detects_extra_parameter(): void
     {
         $this->analyse(
@@ -82,6 +87,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see PartialSignatureExecutable */
+    #[WithoutErrorHandler]
     public function test_allows_partial_signatures(): void
     {
         $this->analyse(
@@ -91,6 +97,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see FailedWithSubclassThrowableExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_subclass_throwable_on_failed(): void
     {
         $this->analyse(
@@ -105,6 +112,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see FailedWithoutThrowableExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_failed_without_throwable_first_param(): void
     {
         $this->analyse(
@@ -119,6 +127,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see NoExecuteMethodExecutable */
+    #[WithoutErrorHandler]
     public function test_skips_class_without_execute_method(): void
     {
         $this->analyse(
@@ -128,6 +137,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see NoLifecycleMethodsExecutable */
+    #[WithoutErrorHandler]
     public function test_skips_class_with_no_lifecycle_methods(): void
     {
         $this->analyse(
@@ -137,6 +147,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see ConcurrencyLimitMismatchedParamExecutable */
+    #[WithoutErrorHandler]
     public function test_detects_extra_parameter_on_concurrency_limit(): void
     {
         $this->analyse(
@@ -151,6 +162,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see ConcurrencyLimitWrongReturnTypeExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_wrong_return_type_on_concurrency_limit(): void
     {
         $this->analyse(
@@ -165,6 +177,7 @@ final class ExecutableParamMismatchRuleTest extends RuleTestCase
     }
 
     /** @see ConfigureWithoutQueueableConfigExecutable */
+    #[WithoutErrorHandler]
     public function test_flags_configure_without_queueable_config_first_param(): void
     {
         $this->analyse(

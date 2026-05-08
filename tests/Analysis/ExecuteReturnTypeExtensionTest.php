@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Havn\Executable\Tests\Analysis;
 
 use PHPStan\Testing\TypeInferenceTestCase;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use Workbench\App\Executables\Analysis\ExecuteReturnTypeFixture;
 
 final class ExecuteReturnTypeExtensionTest extends TypeInferenceTestCase
 {
     /** @see ExecuteReturnTypeFixture */
+    #[WithoutErrorHandler]
     public function test_execute_return_types(): void
     {
         $asserts = self::gatherAssertTypes(
