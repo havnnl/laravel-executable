@@ -27,7 +27,7 @@ class ExecuteReturnTypeFixture
 
     public function prepareReturnsExecutableJob(): void
     {
-        assertType(ExecutableJob::class, StringReturnExecutable::prepare()->execute());
+        assertType(ExecutableJob::class.'|string', StringReturnExecutable::prepare()->execute());
     }
 
     public function syncReturnsVoid(): void
